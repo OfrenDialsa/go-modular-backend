@@ -1,0 +1,25 @@
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: starter-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+      - go-gin-starter_default
+
+  grafana:
+    image: grafana/grafana
+    container_name: starter-grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+      - go-gin-starter_default
+
+networks:
+  monitoring:
+  go-gin-starter_default:
+    external: true

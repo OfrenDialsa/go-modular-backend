@@ -1,0 +1,5 @@
+.cache
+.git
+.gitignore
+tmp
+coverage.out

@@ -1,0 +1,50 @@
+name: Go Test & Coverage
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.26.1'
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Install bc
+      run: sudo apt-get update && sudo apt-get install -y bc
+
+    - name: Run Tests with Coverage
+      run: make test
+
+    - name: Check Coverage Threshold
+      shell: bash
+      run: |
+        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        
+        if [ -z "$COVERAGE" ]; then
+          echo "[x] Error: Could not calculate coverage. Check test logs."
+          exit 1
+        fi
+
+        THRESHOLD=60
+        echo "Current coverage: $COVERAGE%"
+        
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "[x] Coverage is below $THRESHOLD%! Coverage: $COVERAGE%"
+          exit 1
+        else
+          echo "[v] Coverage is sufficient: $COVERAGE%"
+        fi
